@@ -13,7 +13,9 @@
         <option value="moderate">Moderate</option>
         <option value="low">Low</option>
       </select>
-      <button>Add Task</button>
+      <button v-if="id" @click="updateTask(id)">Update Task</button>
+      <button v-else>Add Task</button>
+
     </div>
   </form>
 </template>
@@ -21,11 +23,15 @@
 <script>
 export default {
   name: "TaskForm",
+  props:{
+    id:String
+  },
   data() {
     return {
       formValues: {
         name: "",
         priority: "low",
+        editClick:false
       },
     };
   },
@@ -34,6 +40,10 @@ export default {
       this.$emit("submitTask", { ...this.formValues });
       this.formValues.name = "";
     },
+    updateTask(id){
+      console.log(id,this.formValues)
+      this.$emit("updateTask", id,this.formValues);
+    }
   },
 };
 </script>
