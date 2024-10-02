@@ -2,13 +2,17 @@
   <div>
     <ul>
       <li v-for="(task, index) in tasks"  :key="task.name">
-        <div  v-if="editSet == yes" id="listItems">
+        <div  id="listItems">
           <div>{{ task.name }}</div>
           <div>{{ task.priority }}</div>
           <button @click="toggleEdit(index)">Edit</button>
           <button @click="deleteTask(index)">Delete</button>
         </div>
-        <TaskForm  v-else-if="editSet == no" @submitTask="submitForm" />
+        <TaskForm      
+        @updateTask="updateTask"
+        v-if="task.editClick" 
+        :id = "index" 
+        @submitTask="submitForm" />
       </li>
     </ul>
   </div>
@@ -32,21 +36,25 @@ export default {
         // name: "",
         // priority: "low",
         // },
-        editSet:"yes"
+        editSet:false
       }
     },
     editTask(index) {
       this.$emit("editTask", index);
     },
-    toggleEdit() {
+    toggleEdit(index) {
       console.log("lol",this.editSet)
-      if(this.editSet == "yes")
-      this.editSet = "no"
-      else
-      this.editSet = "yes"; // Toggles between true and false
+      this.$emit("editTask", index,);
+      // console.log(tasks,"tasks")
+      // this.editSet = !this.editSet
     },
     deleteTask(index) {
       this.$emit("deleteTask", index);
+    },
+    updateTask(index,formValues){
+      console.log(index)
+      this.$emit("updateTask",index,formValues)
+        // this.listValues[index] = formValues
     },
   },
 };
@@ -95,4 +103,12 @@ button:hover {
   background-color: darkorange;
 }
 
+ li #formField, #updateData {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    gap: 10px;
+    margin: 20px 0px;
+    width:100%
+}
 </style>
