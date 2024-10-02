@@ -6,13 +6,15 @@
     </div>
     <!-- Form Component -->
     <TaskForm
-    @submitTask="submitForm" />
+    @submitTask="submitForm"
+    />
 
     <!-- List Component -->
     <TaskList
       :tasks="listValues"
       @editTask="editRow"
       @deleteTask="deleteRow"
+     @updateTask="updateTask"
     />
 
     <div v-if="listValues.length > 0" id="updateData">
@@ -40,6 +42,13 @@ export default {
     };
   },
   methods: {
+    updateTask(index,formValues){
+      console.log(index,formValues)
+        if(formValues.name !== "")
+        this.listValues[index] = formValues
+        else
+        alert("Please enter valid string")
+    },
     submitForm(task) {
       console.log(task,"submitForm")
       if (task.name === "") {
@@ -52,6 +61,7 @@ export default {
       });
     },
     editRow(index) {
+      this.listValues[index].editClick = !this.listValues[index].editClick
       console.log("Edit row:", index);
     },
     deleteRow(index) {
