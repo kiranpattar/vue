@@ -1,163 +1,135 @@
 <template>
-    <div>
-                <h2>Priority To-Do List</h2>
-            </div>
-    <form @submit.prevent="submitForm">
-        <div id="formField">
-            <div>
-                <input @keyup.enter="submitForm" id="name" placeholder="Name" v-model.trim.lazy="formValues.name"  type="text"/>
-            </div>
-            <div>
-                <select  @keyup.enter="submitForm" name="priority"  v-model="formValues.dropValue" id="priority">
-                  <option value="critical">Critical</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="low">Low</option>
-                </select>
-            </div>
-            <button >Add to-do-list </button>
-        </div>
-    </form>
-        <div >
-            <ul>
-              <li v-for="(obj,index) in listValues" :key="obj.name">
-                 <div id="listItems">
-                    <div> 
-                      <div v-if= "obj.editRowData == false"> {{obj.name}}</div>
-                      <!-- <input type=text v-if= "obj.editRowData == true" v-model="obj.name"/>  -->
-                    </div>
-                    <div> 
-                      {{obj.dropValue}} 
-                    </div>
-                    <button @click="editRow" :id="index" key="" >
-                      Edit 
-                    </button>
-                    <button @click="deleteRow" :id="index" key="" >
-                      Delete 
-                    </button>
-                 </div>
-              </li>   
-            </ul>
-        </div>
+  <div>
+    <div id='header'>
+        <h2>Priority To-Do List</h2>
+        <h2 v-if="saveData">Saved Successfully</h2>
+    </div>
+    <!-- Form Component -->
+    <TaskForm
+    @submitTask="submitForm" />
 
-        <div v-if="listValues.length > 0" id="updateData">
-            <div>
-                <button @click="onSave">Save </button>
-            </div>
-            <div>
-                <button @click="deleteEntireTable" >Clear </button>
-            </div> 
-        </div>
-     </template>   
+    <!-- List Component -->
+    <TaskList
+      :tasks="listValues"
+      @editTask="editRow"
+      @deleteTask="deleteRow"
+    />
 
+    <div v-if="listValues.length > 0" id="updateData">
+      <button @click="onSave">Save</button>
+      <button @click="deleteEntireTable">Clear</button>
+    </div>
+  </div>
+</template>
 
 <script>
+import TaskForm from "./components/TaskForm.vue";
+import TaskList from "./components/TaskList.vue";
 
 export default {
-  name: 'App',
-  data(){
-    if(window.localStorage.getItem('taskLists') !== "")
-    this.taskLists = JSON.parse(window.localStorage.getItem('taskLists'))
-    else 
-    this.taskLists = []
+  name: "App",
+  components: {
+    TaskForm,
+    TaskList,
+  },
+  data() {
+    let savedTasks = JSON.parse(localStorage.getItem("taskLists")) || [];
     return {
-      formValues:{
-        name:'',
-        dropValue:'low',
-        delete1:'',
-        editRowData:false,
-      },
-      listValues: this.taskLists.length>0?this.taskLists:[]
-    }    
+      listValues: savedTasks,
+      saveData:false,
+    };
   },
-methods:{
-  editRow(evt){
-    console.log(evt.target.id)
-    // this.listValues[index].editRowData=true
+  methods: {
+    submitForm(task) {
+      console.log(task,"submitForm")
+      if (task.name === "") {
+        alert("Name is empty");
+        return;
+      }
+      this.listValues.push({
+        ...task,
+        id: this.listValues.length,
+      });
+    },
+    editRow(index) {
+      console.log("Edit row:", index);
+    },
+    deleteRow(index) {
+      this.listValues.splice(index, 1);
+    },
+    deleteEntireTable() {
+      if (confirm("Are you sure you want to delete all tasks?")) {
+        this.listValues = [];
+        localStorage.removeItem("taskLists");
+      }
+    },
+    onSave() {
+      localStorage.setItem("taskLists", JSON.stringify(this.listValues));
+      this.saveData = true;
+      let timer = setTimeout(()=>{
+        this.saveData = false
+        clearTimeout(timer)
+      },2000)
+    },
   },
-  submitForm(evt){
-    // event.preventDefault()
-    // console.log('form values',this.formValues)
-    // const {delete1} = this.formValues;
-    if(this.formValues.name == ""){
-      alert("Name is empty")
-      evt.preventDefault()  
-      return false
-
-    }
-    this.listValues.push({
-      ...this.formValues,
-      delete1 : this.listValues.length
-    })
-    this.formValues.name = ""
-    console.log(this.listValues,"listValues")
-
-  },
-  deleteRow(evt){
-      console.log(evt.target.id,"id")
-      // if(this.listValues.length > -1)
-      this.listValues.splice(evt.target.id,1)
-  },
-  deleteEntireTable(){
-    let text = "Are you sure you want to delete the table";
-        if (confirm(text) == true) {
-          this.listValues = []
-          window.localStorage.setItem('taskLists', '');
-        } else {
-          return false
-        }
-  },
-  onSave(){
-    window.localStorage.setItem('taskLists', JSON.stringify(this.listValues));
-  },
-  mounted(){
-    this.taskLists = JSON.parse(localStorage.get('taskLists'));
-    console.log(this.taskLists)
-  }
-}
-}
+};
 </script>
 
 <style>
-#app {
-  /* font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50; */
-}
-ul {
-  background: white;
-  list-style: none;
-}
-ul li {
-  background: white;
-  color: black;
-  padding: 5px;
-  border:1px solid orange;
-
-}
-
-#listItems {
-  display: flex;
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
+#formField {
+  display: grid; 
+    grid-template-columns: 2fr 1fr auto;
+    grid-gap: 10px;
+    padding: 5px;
+    /* border: 1px solid green; */
+    align-items: center;
+    border-bottom: 1px dashed green;
     align-content: stretch;
-    align-items: baseline;
     justify-content: space-evenly;
 }
-#listItems div {
-  width : 35%;
 
+#formField input,  select {
+  width: 40%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
-#formField ,#updateData{
-  display: flex; /* or inline-flex */
-  border: 1px solid green;
+
+ button {
+  padding: 8px 16px;
+  background-color: green;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+#formField button:hover,#listItems button:hover {
+  background-color: darkgreen;
+}
+
+#formField,
+#updateData {
+  display: flex;
   justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: nowrap;
-    flex-direction: row;
-    padding:10px
+  padding: 10px;
+  gap: 10px;
+  margin:20px 0px;
 }
+h2:nth-child(2) {
+  color: green;
 
+  
+}
+#header {
+  display:flex;
+  border-bottom:1px dashed green;
+  justify-content:space-between;
+
+}
+#header h2 {
+   margin:10px 0 0 10px;
+}
 
 </style>
